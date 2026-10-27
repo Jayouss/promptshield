@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  promptshield:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: promptshield-gateway
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - PORT=8080
+      - HOST=0.0.0.0
+      - SHIELD_API_KEY=${SHIELD_API_KEY:-ps_live_master_key_secret_2026}
+      - INJECTION_RISK_THRESHOLD=0.65
+      - REDACT_PII=true
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8080/health\")'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - shield-network
+
+networks:
+  shield-network:
+    driver: bridge
